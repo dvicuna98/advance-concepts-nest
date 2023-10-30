@@ -1,0 +1,73 @@
+version: '3.5'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dependency-base
+    working_dir: /usr/src/myapp
+    container_name: advance-concepts-nest-container
+    volumes:
+      - ./:/usr/src/myapp
+    stdin_open: true
+    tty: true
+    ports:
+      - "${APP_PORT:-80}:3000"
+      - "9229:9229"
+    networks:
+      - advance-concepts-nest-network
+
+  mongo:
+    image: "mongo:5.0"
+    container_name: nest-advance-concepts-mongo
+    command: mongod --auth
+    logging:
+      driver: none
+    ports:
+      - "${SERVER_MONGO_DB_EXPOSE_SERVICE:-27017}:${DB_PORT:-27017}"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - 'mongo-data:/data/db'
+      - 'mongo-log:/var/log/mongodb/'
+    networks:
+      - advance-concepts-nest-network
+  
+  mailhog:
+    image: 'mailhog/mailhog:v1.0.1'
+    container_name: mailhog-nest-advance-concepts
+    ports:
+      - '1027:1025'
+      - '8027:8025'
+    networks:
+      - advance-concepts-nest-network
+
+  rabbitmq:
+    image: rabbitmq:3.11-management
+    container_name: rabbit-nest-advance-concepts
+    tty: true
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USERNAME:-"guest"}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-"guest"}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-"/"}
+    networks:
+      - advance-concepts-nest-network
+
+volumes:
+  mongo-data:
+    driver: local
+  mongo-log:
+    driver: local
+  rabbitmq-data:
+    driver: local
+
+networks:
+  advance-concepts-nest-network:
+    external:
+      name: advance-concepts-nest-shared-network
+
