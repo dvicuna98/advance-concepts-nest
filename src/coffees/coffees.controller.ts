@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, RequestTimeoutException, UseInterceptors } from '@nestjs/common';
 import { CoffeesService } from './coffees.service';
 import { CreateCoffeeDto } from './dto/create-coffee.dto';
 import { UpdateCoffeeDto } from './dto/update-coffee.dto';
+import { CircuitBreakerInterceptor } from 'src/common/interceptor/circuit-breaker/circuit-breaker.interceptor';
 
+@UseInterceptors(CircuitBreakerInterceptor)
 @Controller('coffees')
 export class CoffeesController {
   constructor(private readonly coffeesService: CoffeesService) {}
@@ -14,6 +16,9 @@ export class CoffeesController {
 
   @Get()
   findAll() {
+    // console.log('🦊 "findAll" executed');
+    // throw new RequestTimeoutException('💥 Error!'); // 👈
+
     return this.coffeesService.findAll();
   }
 
